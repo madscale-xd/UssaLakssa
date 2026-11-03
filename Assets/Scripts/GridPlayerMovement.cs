@@ -15,7 +15,20 @@ public class GridPlayerMovement : MonoBehaviour
     [SerializeField] private float moveDuration = 0.12f;
 
     private bool isMoving;
+
+    private Vector3 logicalPosition;
+    private Vector3 visualOffset;
     private Vector3 targetPosition;
+
+    private float movementSpeed;
+
+    private StepCount stepCount;
+    private PartyLeader partyLeader;
+
+    private int companionLayer;
+
+    public float CellSize => cellSize;
+    public Vector3 LogicalPosition => logicalPosition;
 
     private void Start()
     {
@@ -24,8 +37,17 @@ public class GridPlayerMovement : MonoBehaviour
         position.x = Mathf.Round(position.x / cellSize) * cellSize;
         position.z = Mathf.Round(position.z / cellSize) * cellSize;
 
+        logicalPosition = position;
         transform.position = position;
         targetPosition = position;
+
+        stepCount = FindFirstObjectByType<StepCount>();
+        partyLeader = GetComponent<PartyLeader>();
+
+        companionLayer = LayerMask.NameToLayer("Companion");
+
+        if (companionLayer == -1)
+            Debug.LogWarning("The 'Companion' layer does not exist.");
     }
 
     private void Update()
@@ -54,7 +76,6 @@ public class GridPlayerMovement : MonoBehaviour
             TryMove(direction);
     }
 
-    
     private void TryMove(Vector2Int direction)
     {
         Vector3 forward = new Vector3(
@@ -63,10 +84,10 @@ public class GridPlayerMovement : MonoBehaviour
             direction.y
         ) * cellSize;
 
-        Vector3 current = transform.position;
+        Vector3 current = logicalPosition;
         Vector3 next = current + forward;
 
-        // 1. Normal movement: destination is clear and supported.
+        // 1. Normal movement.
         if (IsSpaceClear(next) &&
             IsSpaceOccupied(next + Vector3.down * cellSize))
         {
@@ -74,17 +95,17 @@ public class GridPlayerMovement : MonoBehaviour
             return;
         }
 
-        // 2. Climb: destination is one unit forward and one unit up.
+        // 2. Climb.
         Vector3 climbOne = next + Vector3.up * cellSize;
 
         if (IsSpaceClear(climbOne) &&
             IsSpaceOccupied(climbOne + Vector3.down * cellSize))
         {
-            StartMove(climbOne);
+            StartMove(climbOne, true);
             return;
         }
 
-        // 3. Step down: try one unit below the forward destination.
+        // 3. Step down.
         Vector3 downOne = next + Vector3.down * cellSize;
 
         if (IsSpaceClear(next) &&
@@ -94,8 +115,12 @@ public class GridPlayerMovement : MonoBehaviour
             StartMove(downOne);
             return;
         }
+    }
 
-        // 4. No valid move.
+    private bool IsCompanionLayer(Collider hit)
+    {
+        return companionLayer != -1 &&
+               hit.gameObject.layer == companionLayer;
     }
 
     private bool IsSpaceClear(Vector3 gridPosition)
@@ -115,6 +140,15 @@ public class GridPlayerMovement : MonoBehaviour
         {
             if (hit.transform == transform ||
                 hit.transform.IsChildOf(transform))
+                continue;
+
+            // Companion-layer objects do not block movement.
+            if (IsCompanionLayer(hit))
+                continue;
+
+            Companion companion = hit.GetComponentInParent<Companion>();
+
+            if (companion != null && companion.IsRecruited)
                 continue;
 
             return false;
@@ -142,16 +176,72 @@ public class GridPlayerMovement : MonoBehaviour
                 hit.transform.IsChildOf(transform))
                 continue;
 
+            // Companion-layer objects do not count as ground or obstacles.
+            if (IsCompanionLayer(hit))
+                continue;
+
+            Companion companion = hit.GetComponentInParent<Companion>();
+
+            if (companion != null && companion.IsRecruited)
+                continue;
+
             return true;
         }
 
         return false;
     }
 
-    private void StartMove(Vector3 destination)
+    private void StartMove(Vector3 destination, bool isClimbing = false)
     {
-        targetPosition = destination;
+        Vector3 previousPosition = logicalPosition;
+
+        logicalPosition = destination;
+        targetPosition = logicalPosition + visualOffset;
+
         isMoving = true;
+
+        if (partyLeader != null)
+        {
+            partyLeader.OnLeaderStep(
+                previousPosition,
+                moveDuration
+            );
+        }
+
+        float distance = Vector3.Distance(
+            transform.position,
+            targetPosition
+        );
+
+        movementSpeed = distance / Mathf.Max(moveDuration, 0.001f);
+
+        int stepCost = partyLeader != null
+            ? partyLeader.GetStepCost(isClimbing)
+            : (isClimbing ? 2 : 1);
+
+        if (stepCount != null)
+            stepCount.UseStep(stepCost);
+    }
+
+    public void SetNodeSharingOffset(Vector3 offset, float duration)
+    {
+        visualOffset = offset;
+        targetPosition = logicalPosition + visualOffset;
+
+        float distance = Vector3.Distance(
+            transform.position,
+            targetPosition
+        );
+
+        if (duration <= 0f)
+        {
+            transform.position = targetPosition;
+            isMoving = false;
+            return;
+        }
+
+        movementSpeed = distance / Mathf.Max(duration, 0.001f);
+        isMoving = distance > 0.001f;
     }
 
     private void MoveToTarget()
@@ -159,7 +249,7 @@ public class GridPlayerMovement : MonoBehaviour
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPosition,
-            (cellSize / moveDuration) * Time.deltaTime
+            movementSpeed * Time.deltaTime
         );
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.001f)
@@ -172,6 +262,7 @@ public class GridPlayerMovement : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
+
         Gizmos.DrawWireCube(
             transform.position + Vector3.up * checkHeightOffset,
             checkSize
