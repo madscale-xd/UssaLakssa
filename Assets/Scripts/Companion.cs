@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class Companion : MonoBehaviour
@@ -15,10 +14,14 @@ public class Companion : MonoBehaviour
     private float movementSpeed;
     private bool isMoving;
 
+    private ActionToSprite actionToSprite;
+
     private void Awake()
     {
         GridPosition = transform.position;
         targetPosition = transform.position;
+
+        actionToSprite = GetComponent<ActionToSprite>();
     }
 
     private void Update()
@@ -36,6 +39,10 @@ public class Companion : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
+
+            // Companion has finished moving.
+            if (actionToSprite != null)
+                actionToSprite.SetMoving(false);
         }
     }
 
@@ -83,10 +90,27 @@ public class Companion : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
+
+            if (actionToSprite != null)
+                actionToSprite.SetMoving(false);
+
             return;
         }
 
         movementSpeed = distance / Mathf.Max(moveDuration, 0.001f);
         isMoving = distance > 0.001f;
+
+        // Tell the sprite system that movement has started.
+        if (actionToSprite != null)
+        {
+            Vector3 movement =
+                targetPosition - transform.position;
+
+            actionToSprite.SetHorizontalDirection(
+                movement.x
+            );
+
+            actionToSprite.SetMoving(isMoving);
+        }
     }
 }

@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -24,6 +23,7 @@ public class GridPlayerMovement : MonoBehaviour
 
     private StepCount stepCount;
     private PartyLeader partyLeader;
+    private ActionToSprite actionToSprite;
 
     private int companionLayer;
 
@@ -43,6 +43,7 @@ public class GridPlayerMovement : MonoBehaviour
 
         stepCount = FindFirstObjectByType<StepCount>();
         partyLeader = GetComponent<PartyLeader>();
+        actionToSprite = GetComponent<ActionToSprite>();
 
         companionLayer = LayerMask.NameToLayer("Companion");
 
@@ -142,7 +143,6 @@ public class GridPlayerMovement : MonoBehaviour
                 hit.transform.IsChildOf(transform))
                 continue;
 
-            // Companion-layer objects do not block movement.
             if (IsCompanionLayer(hit))
                 continue;
 
@@ -176,7 +176,6 @@ public class GridPlayerMovement : MonoBehaviour
                 hit.transform.IsChildOf(transform))
                 continue;
 
-            // Companion-layer objects do not count as ground or obstacles.
             if (IsCompanionLayer(hit))
                 continue;
 
@@ -199,6 +198,22 @@ public class GridPlayerMovement : MonoBehaviour
         targetPosition = logicalPosition + visualOffset;
 
         isMoving = true;
+
+        Vector3 horizontalMovement =
+            destination - previousPosition;
+
+        if (actionToSprite != null)
+        {
+            actionToSprite.SetHorizontalDirection(
+                horizontalMovement.x
+            );
+
+            actionToSprite.SetMoving(true);
+        }
+
+        // Tell the sprite system that movement has started.
+        if (actionToSprite != null)
+            actionToSprite.SetMoving(true);
 
         if (partyLeader != null)
         {
@@ -237,11 +252,18 @@ public class GridPlayerMovement : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
+
+            if (actionToSprite != null)
+                actionToSprite.SetMoving(false);
+
             return;
         }
 
         movementSpeed = distance / Mathf.Max(duration, 0.001f);
         isMoving = distance > 0.001f;
+
+        if (actionToSprite != null)
+            actionToSprite.SetMoving(isMoving);
     }
 
     private void MoveToTarget()
@@ -256,6 +278,10 @@ public class GridPlayerMovement : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
+
+            // Movement has finished.
+            if (actionToSprite != null)
+                actionToSprite.SetMoving(false);
         }
     }
 
