@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef0cd849529244b4a8dd4512eca55c50, type: 3}
+  m_Name: Tiles
+  m_EditorClassIdentifier: 
+  rectangle:
+    prefab: {fileID: 6888693267150226510, guid: 85431cbc9508bf14d9f71c3d888bbe57, type: 3}
+    distance: {x: 1, y: 1}
+  hexagon:
+    prefab: {fileID: -2259680264830251454, guid: 82c05967df4365f4e8b947321cdb62aa, type: 3}
+    distance: {x: 1.25, y: 0.75}
