@@ -10,6 +10,7 @@ public class LeaderMovement : MonoBehaviour
     private TileController currentTile;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
+    [SerializeField] private StepCounter stepCounter;
 
     void Start()
     {
@@ -46,6 +47,14 @@ public class LeaderMovement : MonoBehaviour
         if (newTile == null) return;
         float tileDiff = currentTile.transform.position.y - newTile.transform.position.y;
         if (Mathf.Abs(tileDiff) > 1) return;
+        if (tileDiff <= -1)
+        {
+            stepCounter.SubtractSteps(2);
+        }
+        else
+        {
+            stepCounter.SubtractSteps(1);
+        }
         isMoving = true;
         currentTile = newTile;
         StartCoroutine(MoveToTile(moveDuration, tileDiff));
