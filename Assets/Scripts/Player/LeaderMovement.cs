@@ -6,7 +6,6 @@ using MyGrid.Code;
 
 public class LeaderMovement : MonoBehaviour
 {
-    [Header("Start location")]  
     private TileController currentTile;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
