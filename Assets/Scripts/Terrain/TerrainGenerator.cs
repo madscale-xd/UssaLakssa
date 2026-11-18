@@ -8,12 +8,11 @@ public class TerrainGenerator : MonoBehaviour
     [SerializeField] int mapX = 10;
     [SerializeField] int mapZ = 10;
     [SerializeField] int maxElevation = 4;
-    [SerializeField] float variance;
-    [SerializeField] float elevationBias;
+    [SerializeField] float variance;    //higher number = higher variation
+    [SerializeField] float lowerElevBias; //higher num = higher bias towards lower elev
     [SerializeField] private TileSetting tileSetting;
     int [,] elevationMap;   //two-dimensional array for containing mapX and mapZ coordinates
                             //to assign elevation on them
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
         elevationMap = new int[mapX, mapZ];
@@ -21,8 +20,8 @@ public class TerrainGenerator : MonoBehaviour
         {
             for(int j = 0; j < mapZ; j++) // < makes it inclusive to mapZ
             {
-                float noise = Mathf.PerlinNoise(i*variance, j*variance);    //higher number = higher variation
-                noise = Mathf.Pow(noise, elevationBias);     //implementing elevation bias, higher num = higher bias
+                float noise = Mathf.PerlinNoise(i*variance, j*variance);
+                noise = Mathf.Pow(noise, lowerElevBias);     
                 int elevation = Mathf.FloorToInt(noise * (maxElevation+1)); //distribution
                 elevationMap[i,j] = elevation;
             }

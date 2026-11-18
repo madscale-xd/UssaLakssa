@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 using MyGrid.Code;
+using System;
 
 public class LeaderMovement : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class LeaderMovement : MonoBehaviour
     void Start()
     {
         List<TileController> tiles = GridManager.Instance.Tiles;
-        currentTile = tiles[Random.Range(0,tiles.Count)];
+        currentTile = tiles[UnityEngine.Random.Range(0,tiles.Count)];
         transform.position = currentTile.transform.position + Vector3.up * 1.25f;
     }
 
@@ -42,20 +43,19 @@ public class LeaderMovement : MonoBehaviour
 
     void TryMove(TileController newTile)
     {
-        if (newTile == null)
-        {
-            return;
-        }
+        if (newTile == null) return;
+        float tileDiff = currentTile.transform.position.y - newTile.transform.position.y;
+        if (Mathf.Abs(tileDiff) > 1) return;
         isMoving = true;
         currentTile = newTile;
-        StartCoroutine(MoveToTile(moveDuration));
+        StartCoroutine(MoveToTile(moveDuration, tileDiff));
     }
 
-    private IEnumerator MoveToTile(float duration)
+    private IEnumerator MoveToTile(float duration, float tileDiff)
     {
         Vector3 startPosition = transform.position;
         Vector3 newPosition = currentTile.transform.position;
-        newPosition.y = transform.position.y;
+        newPosition.y = transform.position.y - tileDiff;
         float elapsedTime = 0f;
 
         while(elapsedTime < duration)

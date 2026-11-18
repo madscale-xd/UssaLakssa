@@ -745,8 +745,8 @@ MonoBehaviour:
   mapX: 15
   mapZ: 15
   maxElevation: 4
-  variance: 0.9
-  elevationBias: 2.5
+  variance: 0.15
+  elevationBias: 1.5
   tileSetting: {fileID: 11400000, guid: 06b20a1e33d7d2445aad2e88c0d5619c, type: 2}
 --- !u!4 &1388558988
 Transform:
