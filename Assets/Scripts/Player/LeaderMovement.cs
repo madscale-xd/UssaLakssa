@@ -77,9 +77,9 @@ public class LeaderMovement : MonoBehaviour
         }
         transform.position = newPosition;
         isMoving = false;
+        tileSharer.TryTileShare();
         LeaderMoved?.Invoke();
     }
-
     void TryRecruit()
     {
         

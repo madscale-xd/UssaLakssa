@@ -64,6 +64,7 @@ public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player do
         }
         transform.position = newPosition;
         isMoving = false;
+        tileSharer.TryTileShare();
     }
     void OnEnable()
     {
