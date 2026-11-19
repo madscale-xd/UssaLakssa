@@ -7,6 +7,7 @@ using System;
 
 public class LeaderMovement : MonoBehaviour
 {
+    public event Action LeaderMoved;
     private TileController currentTile;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
@@ -76,5 +77,6 @@ public class LeaderMovement : MonoBehaviour
         }
         transform.position = newPosition;
         isMoving = false;
+        LeaderMoved?.Invoke();
     }
 }
