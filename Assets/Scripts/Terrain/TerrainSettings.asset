@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TerrainSettings
   m_EditorClassIdentifier: 
   rectangle:
-    prefab: {fileID: 6888693267150226510, guid: 85431cbc9508bf14d9f71c3d888bbe57, type: 3}
+    prefab: {fileID: 6888693267150226510, guid: b2b94cc36ed76a745afac9f93c806899, type: 3}
     distance: {x: 1, y: 1}
   hexagon:
     prefab: {fileID: -2259680264830251454, guid: 82c05967df4365f4e8b947321cdb62aa, type: 3}

@@ -8,45 +8,45 @@ using System;
 public class LeaderMovement : MonoBehaviour
 {
     public event Action LeaderMoved;
-    private TileController currentTile;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
     [SerializeField] private StepCounter stepCounter;
+    private Companion currentLeader;
+    private TileSharing tileSharer;
 
     void Start()
     {
-        List<TileController> tiles = GridManager.Instance.Tiles;
-        currentTile = tiles[UnityEngine.Random.Range(0,tiles.Count)];
-        transform.position = currentTile.transform.position + Vector3.up * 1.25f;
+        currentLeader = GetComponent<Companion>();
+        tileSharer = GetComponent<TileSharing>();
     }
 
     void Update()
     {
         if (Keyboard.current.wKey.wasPressedThisFrame && !isMoving)
         {
-            TryMove(currentTile.GetNeighbour(Direction.Up));
+            TryMove(tileSharer.CurrentTile.GetNeighbour(Direction.Up));
         }
 
         if (Keyboard.current.sKey.wasPressedThisFrame && !isMoving)
         {
-            TryMove(currentTile.GetNeighbour(Direction.Down));
+            TryMove(tileSharer.CurrentTile.GetNeighbour(Direction.Down));
         }
 
         if (Keyboard.current.dKey.wasPressedThisFrame && !isMoving)
         {
-            TryMove(currentTile.GetNeighbour(Direction.Right));
+            TryMove(tileSharer.CurrentTile.GetNeighbour(Direction.Right));
         }
 
         if (Keyboard.current.aKey.wasPressedThisFrame && !isMoving)
         {
-            TryMove(currentTile.GetNeighbour(Direction.Left));
+            TryMove(tileSharer.CurrentTile.GetNeighbour(Direction.Left));
         }
     }
 
     void TryMove(TileController newTile)
     {
         if (newTile == null) return;
-        float tileDiff = currentTile.transform.position.y - newTile.transform.position.y;
+        float tileDiff = tileSharer.CurrentTile.transform.position.y - newTile.transform.position.y;
         if (Mathf.Abs(tileDiff) > 1) return;
         if (tileDiff <= -1)
         {
@@ -57,14 +57,14 @@ public class LeaderMovement : MonoBehaviour
             stepCounter.SubtractSteps(1);
         }
         isMoving = true;
-        currentTile = newTile;
+        tileSharer.UpdateTile(newTile);
         StartCoroutine(MoveToTile(moveDuration, tileDiff));
     }
 
     private IEnumerator MoveToTile(float duration, float tileDiff)
     {
         Vector3 startPosition = transform.position;
-        Vector3 newPosition = currentTile.transform.position;
+        Vector3 newPosition = tileSharer.CurrentTile.transform.position;
         newPosition.y = transform.position.y - tileDiff;
         float elapsedTime = 0f;
 
@@ -78,5 +78,10 @@ public class LeaderMovement : MonoBehaviour
         transform.position = newPosition;
         isMoving = false;
         LeaderMoved?.Invoke();
+    }
+
+    void TryRecruit()
+    {
+        
     }
 }
