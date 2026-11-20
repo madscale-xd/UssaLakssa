@@ -9,11 +9,13 @@ public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player do
     private TileSharing tileSharer;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
-    [SerializeField] private LeaderMovement leader;
+    private LeaderMovement leader;
 
     void Start()
     {
         tileSharer = GetComponent<TileSharing>();
+        leader = FindFirstObjectByType<LeaderMovement>();
+        leader.LeaderMoved += TryMoveEnemy;
     }
 
     void Update()
@@ -65,10 +67,6 @@ public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player do
         transform.position = newPosition;
         isMoving = false;
         tileSharer.TryTileShare();
-    }
-    void OnEnable()
-    {
-        leader.LeaderMoved += TryMoveEnemy;
     }
 
     void OnDisable()
