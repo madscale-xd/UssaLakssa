@@ -9,6 +9,8 @@ public class TileSharing : MonoBehaviour
 {
     private TileController currentTile;
     public TileController CurrentTile => currentTile;   //getter
+    private TileController previousTile;
+    public TileController PreviousTile => previousTile;   //getter
     private TileSharing[] TileSharers;
     void Start()
     {
@@ -29,15 +31,7 @@ public class TileSharing : MonoBehaviour
     {
         Vector3 tileCenter = currentTile.transform.position;
         float radius = 0.25f;
-        List<TileSharing> sharers = new List<TileSharing>();
-        foreach(TileSharing unit in TileSharers)
-        {
-            if(unit.currentTile == currentTile)
-            {
-               sharers.Add(unit);
-            }
-            Debug.Log("Tile: " + currentTile.name + " | Sharers: " + sharers.Count);
-        }
+        List<TileSharing> sharers = TileOccupancy();
         if(sharers.Count > 1)
         {
             int sharerCount = 0;
@@ -59,6 +53,7 @@ public class TileSharing : MonoBehaviour
     }
     public void UpdateTile(TileController newTile)
     {
+        previousTile = currentTile;
         currentTile = newTile;
     }
     private IEnumerator RepositionUnit(float duration, Vector3 targetPosition)
@@ -74,5 +69,22 @@ public class TileSharing : MonoBehaviour
             yield return null;
         }
         transform.position = targetPosition;
+    }
+    public List<TileSharing> TileOccupancy()
+    {
+        List<TileSharing> sharers = new List<TileSharing>();
+        foreach(TileSharing unit in TileSharers)
+        {
+            if(unit.currentTile == currentTile)
+            {
+               sharers.Add(unit);
+            }
+        }
+        return sharers;
+    }
+
+    public Companion CompanionCall()
+    {
+        return GetComponent<Companion>();
     }
 }
