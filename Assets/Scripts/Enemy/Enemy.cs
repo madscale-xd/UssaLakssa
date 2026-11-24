@@ -7,31 +7,21 @@ using System;
 public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player does their move
 {
     private TileSharing tileSharer;
-    private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
     private LeaderMovement leader;
-
+    
     void Start()
     {
         tileSharer = GetComponent<TileSharing>();
         leader = FindFirstObjectByType<LeaderMovement>();
-        leader.LeaderMoved += TryMoveEnemy;
     }
-
-    void Update()
+    public IEnumerator TryMoveEnemy()
     {
-    }
-
-    void TryMoveEnemy()
-    {
-        if(isMoving) return;
         TileController newTile = ChooseTile();
         float tileDiff = tileSharer.CurrentTile.transform.position.y - newTile.transform.position.y;
-        isMoving = true;
         tileSharer.UpdateTile(newTile);
-        StartCoroutine(MoveToTile(moveDuration, tileDiff));
+        yield return StartCoroutine(MoveToTile(moveDuration, tileDiff));
     }
-
     public TileController ChooseTile()
     {
         TileController enemyUp = tileSharer.CurrentTile.GetNeighbour(Direction.Up);
@@ -49,7 +39,6 @@ public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player do
         TileController chosenTile = enemyValidTiles[UnityEngine.Random.Range(0, enemyValidTiles.Count)];
         return chosenTile;
     }
-
     private IEnumerator MoveToTile(float duration, float tileDiff)
     {
         Vector3 startPosition = transform.position;
@@ -65,12 +54,6 @@ public class Enemy : MonoBehaviour //(OVERWORLD) Enemy only moves when player do
             yield return null;
         }
         transform.position = newPosition;
-        isMoving = false;
         tileSharer.TryTileShare();
-    }
-
-    void OnDisable()
-    {
-        leader.LeaderMoved -= TryMoveEnemy;
     }
 }

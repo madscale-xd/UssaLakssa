@@ -12,16 +12,13 @@ public class TileSharing : MonoBehaviour
     private TileController previousTile;
     public TileController PreviousTile => previousTile;   //getter
     private TileSharing[] TileSharers;
+
     void Start()
     {
         List<TileController> tiles = GridManager.Instance.Tiles;
         currentTile = tiles[UnityEngine.Random.Range(0,tiles.Count)];
         transform.position = currentTile.transform.position + Vector3.up * 1.25f;
         FindTileSharers();
-    }
-
-    void Update()
-    {
     }
     private void FindTileSharers()
     {
@@ -82,7 +79,6 @@ public class TileSharing : MonoBehaviour
         }
         return sharers;
     }
-
     public Companion CompanionCall()
     {
         return GetComponent<Companion>();

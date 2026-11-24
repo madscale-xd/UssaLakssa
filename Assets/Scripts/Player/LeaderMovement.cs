@@ -10,17 +10,17 @@ public class LeaderMovement : MonoBehaviour
     public event Action LeaderMoved;
     private bool isMoving;
     [SerializeField] private float moveDuration = 0.33f;
-    [SerializeField] private StepCounter stepCounter;
+    private StepCounter stepCounter;
     [SerializeField] private Companion currentLeader;
     public Companion CurrentLeader => currentLeader;
     private List<Companion> partyMembers = new List<Companion>();
-
+    
     void Start()
     {
         //currentLeader = GetComponent<Companion>();  //change in selection screens
         currentLeader.SetLeader();
+        stepCounter = FindFirstObjectByType<StepCounter>();
     }
-
     void Update()
     {
         if (Keyboard.current.wKey.wasPressedThisFrame && !isMoving)
@@ -43,11 +43,11 @@ public class LeaderMovement : MonoBehaviour
             TryMove(currentLeader.companionTile().CurrentTile.GetNeighbour(Direction.Left));
         }
     }
-
     void TryMove(TileController newTile)
     {
         if (newTile == null) return;
         float tileDiff = currentLeader.companionTile().CurrentTile.transform.position.y - newTile.transform.position.y;
+        LeaderMoved?.Invoke();          //START TURN RESOLUTION THROUGH OVERWORLDMANAGER
         if (Mathf.Abs(tileDiff) > 1) return;
         if (tileDiff <= -1)
         {
@@ -61,7 +61,6 @@ public class LeaderMovement : MonoBehaviour
         currentLeader.companionTile().UpdateTile(newTile);
         StartCoroutine(MoveToTile(moveDuration, tileDiff));
     }
-
     private IEnumerator MoveToTile(float duration, float tileDiff)
     {
         Vector3 startPosition = currentLeader.transform.position;
@@ -77,11 +76,8 @@ public class LeaderMovement : MonoBehaviour
             yield return null;
         }
         currentLeader.transform.position = newPosition;
-        isMoving = false;
         currentLeader.companionTile().TryTileShare();
         TryRecruit();
-        LeaderMoved?.Invoke();
-        PartyMove();
     }
     void TryRecruit()
     {
@@ -99,23 +95,16 @@ public class LeaderMovement : MonoBehaviour
             }
         }
     }
+    public Companion partyLeader()
+    {
+        return currentLeader;
+    }
     public List<Companion> CompanionList()
     {
         return partyMembers;
     }
-
-    void PartyMove()
+    public void setMoving(bool moving)
     {
-        for (int i = 0; i < CompanionList().Count; i++)
-        {
-            if(i == 0)
-            {
-                CompanionList()[i].TryMoveComp(currentLeader);
-            }
-            else
-            {
-                CompanionList()[i].TryMoveComp(CompanionList()[i-1]);
-            }
-        }
+        isMoving = moving;
     }
 }

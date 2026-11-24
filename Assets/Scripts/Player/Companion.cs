@@ -17,33 +17,36 @@ public class Companion : MonoBehaviour
     private bool isRecruited = false;
     public bool IsRecruited => isRecruited;
     private TileSharing tileSharer;
-    private bool isMoving;
     private bool isLeader;
     private LeaderMovement leader;
     private Companion followTarget;
-    
+    private StepCounter stepCounter;
+
     public void Start()
     {
         tileSharer = GetComponent<TileSharing>();
         leader = FindFirstObjectByType<LeaderMovement>();
         //tileSharer.CurrentTile;
+        stepCounter = FindFirstObjectByType<StepCounter>();
     }
-
-    void Update()
-    {
-    }
-
     public void TryMoveComp(Companion followTarget)
     {
         if(isLeader) return;
         if(!isRecruited) return;
         TileController targetTile = followTarget.companionTile().PreviousTile;
         float tileDiff = tileSharer.CurrentTile.transform.position.y - targetTile.transform.position.y;
-        isMoving = true;
+        if (Mathf.Abs(tileDiff) > 1) return;
+        if (tileDiff <= -1)
+        {
+            stepCounter.SubtractSteps(2);
+        }
+        else
+        {
+            stepCounter.SubtractSteps(1);
+        }
         tileSharer.UpdateTile(targetTile);
         StartCoroutine(MoveToTile(moveDuration, targetTile, tileDiff));
     }
-
     public TileSharing companionTile()
     {
         return tileSharer;
@@ -73,7 +76,6 @@ public class Companion : MonoBehaviour
             yield return null;
         }
         transform.position = newPosition;
-        isMoving = false;
         tileSharer.TryTileShare();
     }
 }
